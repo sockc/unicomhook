@@ -24,18 +24,15 @@ public class MainHook implements IXposedHookLoadPackage {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                         String result = (String) param.getResult();
-                        if (result != null) {
-                            String modified = result;
+                        if (result != null && result.contains("respCode")) {
                             
-                            // 1. 破解白名单 (通行证)
-                            modified = modified.replaceAll("\"respCode\"\\s*:\\s*\"[^\"]*\"", "\"respCode\":\"0000\"");
+                            // 【核心修复】：完美复刻小火箭的 jq 逻辑！
+                            // 无论 respCode 的值带不带引号，嵌套在第几层，统统替换为 "0000"
+                            String modified = result.replaceAll("\"respCode\"\\s*:\\s*(\"[^\"]*\"|[^,\\}\\]]+)", "\"respCode\":\"0000\"");
                             
-                            // 2. 强行把所有业务状态改为“已开通” (完全复刻小火箭脚本逻辑)
-                            modified = modified.replaceAll("\"isOpen\"\\s*:\\s*\"0\"", "\"isOpen\":\"1\"");
-                            modified = modified.replaceAll("\"isOpen\"\\s*:\\s*\"N\"", "\"isOpen\":\"Y\"");
-                            modified = modified.replaceAll("\"status\"\\s*:\\s*\"0\"", "\"status\":\"1\"");
-                            modified = modified.replaceAll("\"isSign\"\\s*:\\s*\"0\"", "\"isSign\":\"1\"");
-                            modified = modified.replaceAll("\"businessState\"\\s*:\\s*\"[^\"]*\"", "\"businessState\":\"1\"");
+                            // 保留其他状态字段作为兜底保险
+                            modified = modified.replaceAll("\"isOpen\"\\s*:\\s*(\"[^\"]*\"|[^,\\}\\]]+)", "\"isOpen\":\"1\"");
+                            modified = modified.replaceAll("\"status\"\\s*:\\s*(\"[^\"]*\"|[^,\\}\\]]+)", "\"status\":\"1\"");
 
                             if (!modified.equals(result)) {
                                 param.setResult(modified);
@@ -57,14 +54,12 @@ public class MainHook implements IXposedHookLoadPackage {
                     @Override
                     protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                         String jsonString = (String) param.args[0];
-                        if (jsonString != null) {
-                            String modified = jsonString;
-                            modified = modified.replaceAll("\"respCode\"\\s*:\\s*\"[^\"]*\"", "\"respCode\":\"0000\"");
-                            modified = modified.replaceAll("\"isOpen\"\\s*:\\s*\"0\"", "\"isOpen\":\"1\"");
-                            modified = modified.replaceAll("\"isOpen\"\\s*:\\s*\"N\"", "\"isOpen\":\"Y\"");
-                            modified = modified.replaceAll("\"status\"\\s*:\\s*\"0\"", "\"status\":\"1\"");
-                            modified = modified.replaceAll("\"isSign\"\\s*:\\s*\"0\"", "\"isSign\":\"1\"");
-                            modified = modified.replaceAll("\"businessState\"\\s*:\\s*\"[^\"]*\"", "\"businessState\":\"1\"");
+                        if (jsonString != null && jsonString.contains("respCode")) {
+                            
+                            String modified = jsonString.replaceAll("\"respCode\"\\s*:\\s*(\"[^\"]*\"|[^,\\}\\]]+)", "\"respCode\":\"0000\"");
+                            modified = modified.replaceAll("\"isOpen\"\\s*:\\s*(\"[^\"]*\"|[^,\\}\\]]+)", "\"isOpen\":\"1\"");
+                            modified = modified.replaceAll("\"status\"\\s*:\\s*(\"[^\"]*\"|[^,\\}\\]]+)", "\"status\":\"1\"");
+                            
                             param.args[0] = modified;
                         }
                     }
