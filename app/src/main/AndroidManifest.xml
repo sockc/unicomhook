@@ -1,13 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.sockc.unicomhook">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@android:drawable/sym_def_app_icon"
         android:label="联通VoWiFi强开模块"
-        android:supportsRtl="true"
-        android:theme="@android:style/Theme.DeviceDefault">
+        android:supportsRtl="true">
         
         <meta-data
             android:name="xposedmodule"
