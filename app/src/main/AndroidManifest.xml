@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.sockc.unicomhook">
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="联通VoWiFi强开模块"
+        android:supportsRtl="true"
+        android:theme="@android:style/Theme.DeviceDefault">
+        
+        <meta-data
+            android:name="xposedmodule"
+            android:value="true" />
+        <meta-data
+            android:name="xposeddescription"
+            android:value="强开联通 VoWiFi 通话 - 纯净拦截 0000" />
+        <meta-data
+            android:name="xposedminversion"
+            android:value="54" />
+    </application>
+</manifest>
