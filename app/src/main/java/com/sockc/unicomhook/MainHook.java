@@ -14,8 +14,7 @@ public class MainHook implements IXposedHookLoadPackage {
             return;
         }
 
-        XposedBridge.log("UnicomHook: 成功注入联通 APP");
-
+        // 拦截 OkHttp 网络请求
         try {
             XposedHelpers.findAndHookMethod(
                 "okhttp3.ResponseBody", 
@@ -25,18 +24,30 @@ public class MainHook implements IXposedHookLoadPackage {
                     @Override
                     protected void afterHookedMethod(MethodHookParam param) throws Throwable {
                         String result = (String) param.getResult();
-                        if (result != null && result.contains("respCode")) {
-                            String modified = result.replaceAll("\"respCode\"\\s*:\\s*\"[^\"]*\"", "\"respCode\":\"0000\"");
-                            param.setResult(modified);
-                            XposedBridge.log("UnicomHook: OkHttp 响应修改为 0000");
+                        if (result != null) {
+                            String modified = result;
+                            
+                            // 1. 破解白名单 (通行证)
+                            modified = modified.replaceAll("\"respCode\"\\s*:\\s*\"[^\"]*\"", "\"respCode\":\"0000\"");
+                            
+                            // 2. 强行把所有业务状态改为“已开通” (完全复刻小火箭脚本逻辑)
+                            modified = modified.replaceAll("\"isOpen\"\\s*:\\s*\"0\"", "\"isOpen\":\"1\"");
+                            modified = modified.replaceAll("\"isOpen\"\\s*:\\s*\"N\"", "\"isOpen\":\"Y\"");
+                            modified = modified.replaceAll("\"status\"\\s*:\\s*\"0\"", "\"status\":\"1\"");
+                            modified = modified.replaceAll("\"isSign\"\\s*:\\s*\"0\"", "\"isSign\":\"1\"");
+                            modified = modified.replaceAll("\"businessState\"\\s*:\\s*\"[^\"]*\"", "\"businessState\":\"1\"");
+
+                            if (!modified.equals(result)) {
+                                param.setResult(modified);
+                            }
                         }
                     }
                 }
             );
         } catch (Throwable t) {
-            XposedBridge.log("UnicomHook: OkHttp 拦截失败");
         }
 
+        // 拦截底层 JSON 解析 (双重保险)
         try {
             XposedHelpers.findAndHookConstructor(
                 "org.json.JSONObject", 
@@ -46,9 +57,15 @@ public class MainHook implements IXposedHookLoadPackage {
                     @Override
                     protected void beforeHookedMethod(MethodHookParam param) throws Throwable {
                         String jsonString = (String) param.args[0];
-                        if (jsonString != null && jsonString.contains("respCode")) {
-                            param.args[0] = jsonString.replaceAll("\"respCode\"\\s*:\\s*\"[^\"]*\"", "\"respCode\":\"0000\"");
-                            XposedBridge.log("UnicomHook: JSONObject 解析修改为 0000");
+                        if (jsonString != null) {
+                            String modified = jsonString;
+                            modified = modified.replaceAll("\"respCode\"\\s*:\\s*\"[^\"]*\"", "\"respCode\":\"0000\"");
+                            modified = modified.replaceAll("\"isOpen\"\\s*:\\s*\"0\"", "\"isOpen\":\"1\"");
+                            modified = modified.replaceAll("\"isOpen\"\\s*:\\s*\"N\"", "\"isOpen\":\"Y\"");
+                            modified = modified.replaceAll("\"status\"\\s*:\\s*\"0\"", "\"status\":\"1\"");
+                            modified = modified.replaceAll("\"isSign\"\\s*:\\s*\"0\"", "\"isSign\":\"1\"");
+                            modified = modified.replaceAll("\"businessState\"\\s*:\\s*\"[^\"]*\"", "\"businessState\":\"1\"");
+                            param.args[0] = modified;
                         }
                     }
                 }
